@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DQN-LSTM Traffic Signal Control Framework</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        header {
+            background: #333;
+            color: #fff;
+            padding: 10px 20px;
+            text-align: center;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        h1, h2 {
+            color: #333;
+        }
+        h1 {
+            font-size: 35px;
+            text-align: center;
+            color:#ddd;
+            box-shadow: 0 2px 40px rgba(77, 237, 14, 0.1);
+        }
+        h2 {
+            font-size: 30px;
+            margin-top: 20px;
+        }
+        h3{
+            font-size: 25px;
+        }
+        p {
+            margin: 10px 0;
+            font-size: 23px;
+        }
+        ul {
+            margin: 10px 0;
+            padding-left: 20px;
+            font-size: 23px;
+        }
+        li {
+            margin: 5px 0;
+            font-size: 23px;
+        }
+        code {
+            background: #f9f9f9;
+            
+            border: 1px solid #ddd;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: Consolas, "Courier New", monospace;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Deep Q-Network with LSTM for Traffic Signal Control</h1>
+    </header>
+    <div class="container">
+        <section>
+            <h2>Introduction</h2>
+            <p>Traffic management at intersections is a critical component of modern urban planning, aiming to optimize vehicle flow, reduce congestion, and minimize waiting times. With advancements in artificial intelligence (AI), particularly reinforcement learning (RL), adaptive traffic control systems have emerged as powerful solutions. This document outlines a framework using a Deep Q-Network (DQN) integrated with Long Short-Term Memory (LSTM) layers to address the challenges of real-time traffic signal control. The goal is to implement constraints such as a minimum green time of 20 seconds and a maximum waiting time of 120 seconds per traffic direction.</p>
+        </section>
+
+        <section>
+            <h2>Framework Overview</h2>
+            <h3>1. Environment Setup</h3>
+            <p>The traffic intersection is modeled as an RL environment:</p>
+            <ul>
+                <li><strong>States:</strong> The environment's states represent the traffic conditions at the junction, including:
+                    <ul>
+                        <li>Number of vehicles waiting in each lane.</li>
+                        <li>Current traffic light status (e.g., green or red).</li>
+                        <li>Duration of the current green or red phase.</li>
+                        <li>Historical patterns of traffic to account for temporal variations.</li>
+                    </ul>
+                </li>
+                <li><strong>Actions:</strong> Possible actions represent signal changes, such as:
+                    <ul>
+                        <li>Extending the green phase for a specific direction.</li>
+                        <li>Switching the signal to red and starting the green phase for another direction.</li>
+                    </ul>
+                </li>
+                <li><strong>Environment Dynamics:</strong> State transitions occur based on traffic flow changes influenced by the chosen actions and external factors (e.g., arrival of new vehicles).</li>
+            </ul>
+
+            <h3>2. State Representation</h3>
+            <p>Using an LSTM network, the state representation incorporates temporal dependencies by processing sequences of historical traffic data. This provides the model with context about:</p>
+            <ul>
+                <li>Vehicle arrival rates.</li>
+                <li>Historical waiting times.</li>
+                <li>Changes in light statuses over time.</li>
+            </ul>
+
+            <h3>3. Reward Function</h3>
+            <p>The reward function is designed to balance multiple objectives:</p>
+            <ul>
+                <li><strong>Incentives for efficiency:</strong>
+                    <ul>
+                        <li>Positive rewards for reducing waiting times across all lanes.</li>
+                        <li>Rewards for maintaining traffic flow within acceptable thresholds.</li>
+                    </ul>
+                </li>
+                <li><strong>Penalties for constraint violations:</strong>
+                    <ul>
+                        <li>Negative rewards if the green phase for a direction lasts less than 20 seconds.</li>
+                        <li>Severe penalties if waiting times exceed 120 seconds for any lane.</li>
+                    </ul>
+                </li>
+                <li><strong>Optional:</strong> Rewards for minimizing fuel consumption or improving air quality, if additional data (e.g., emissions levels) is available.</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>Implementation Steps</h2>
+            <h3>1. Data Collection</h3>
+            <p>Real-time traffic data is essential for training and deployment. Sources include:</p>
+            <ul>
+                <li>Sensors (e.g., inductive loop detectors, cameras).</li>
+                <li>Historical traffic data logs.</li>
+                <li>Simulated traffic patterns from tools like SUMO (Simulation of Urban Mobility).</li>
+            </ul>
+
+            <h3>2. Model Design</h3>
+            <p>The DQN model architecture includes:</p>
+            <ul>
+                <li><strong>Input Layer:</strong> Accepts numerical vectors representing the current state (e.g., vehicle counts, waiting times). Sequences of state inputs are fed into the model for temporal processing.</li>
+                <li><strong>LSTM Layer:</strong> Processes time-series data to capture temporal relationships and predict future traffic conditions based on past patterns.</li>
+                <li><strong>Fully Connected Layers:</strong> Outputs Q-values for each possible action, representing the expected cumulative reward for taking that action.</li>
+            </ul>
+
+            <h3>3. Training the DQN</h3>
+            <ul>
+                <li><strong>Experience Replay:</strong> Stores past transitions in a replay buffer and samples mini-batches randomly to reduce correlation between samples.</li>
+                <li><strong>Epsilon-Greedy Strategy:</strong> Balances exploration and exploitation during training.</li>
+                <li><strong>Bellman Equation:</strong> Updates Q-values using the temporal difference learning formula:
+                    <pre>Q(s,a) &larr; Q(s,a) + &alpha;[r + &gamma; max<sub>a</sub> Q(s',a') - Q(s,a)]</pre>
+                </li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>Advantages of the Approach</h2>
+            <ul>
+                <li><strong>Adaptability:</strong> The LSTM layer enables the system to adapt to changing traffic patterns over time.</li>
+                <li><strong>Efficiency:</strong> Integrating DQN with temporal data optimizes traffic flow while respecting constraints.</li>
+                <li><strong>Scalability:</strong> The framework can be extended to multi-junction scenarios, accommodating larger networks.</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>Conclusion</h2>
+            <p>By combining reinforcement learning and temporal sequence modeling, a DQN-LSTM framework offers a robust solution for traffic signal control. The approach addresses operational constraints, such as minimum green time and maximum waiting time, and sets the foundation for intelligent, adaptive traffic management systems. Through careful simulation, testing, and refinement, this model can significantly reduce congestion and improve traffic efficiency at intersections.</p>
+        </section>
+    </div>
+</body>
+</html>
